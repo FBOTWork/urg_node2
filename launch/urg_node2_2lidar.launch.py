@@ -153,10 +153,10 @@ def generate_launch_description():
     # *ロードするパラメータファイルは上部のファイル名を直接編集してください*
     return LaunchDescription([
         DeclareLaunchArgument('auto_start', default_value='true'),
-        DeclareLaunchArgument('node_name_1st', default_value='urg_node2_1st'),
-        DeclareLaunchArgument('node_name_2nd', default_value='urg_node2_2nd'),
-        DeclareLaunchArgument('scan_topic_name_1st', default_value='scan_1st'),
-        DeclareLaunchArgument('scan_topic_name_2nd', default_value='scan_2nd'),
+        DeclareLaunchArgument('node_name_1st', default_value='urg_node2_front'),
+        DeclareLaunchArgument('node_name_2nd', default_value='urg_node2_rear'),
+        DeclareLaunchArgument('scan_topic_name_1st', default_value='/laser_scan_front'),
+        DeclareLaunchArgument('scan_topic_name_2nd', default_value='/laser_scan_rear'),
         lifecycle_node_1st,
         lifecycle_node_2nd,
         urg_node2_node_1st_configure_event_handler,
