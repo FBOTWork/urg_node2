@@ -27,62 +27,62 @@ from launch_ros.event_handlers import OnStateTransition
 from launch_ros.events.lifecycle import ChangeState
 from lifecycle_msgs.msg import Transition
 
-# 2台LiDAR接続時のurg_node2複数起動
+    # 2台のLiDARを接続する場合のurg_node2の多重起動
 
 def generate_launch_description():
 
     # パラメータファイルのパス設定（1台目）
-    config_file_path_1st = os.path.join(
+    config_file_path_front = os.path.join(
         get_package_share_directory('urg_node2'),
         'config',
-        'params_ether.yaml'
+        'params_serial_front.yaml'
     )
 
     # パラメータファイルのパス設定（2台目）
-    config_file_path_2nd = os.path.join(
+    config_file_path_rear = os.path.join(
         get_package_share_directory('urg_node2'),
         'config',
-        'params_ether_2nd.yaml'
+        'params_serial_rear.yaml'
     )
 
-    # パラメータファイルのロード（1台目）
-    with open(config_file_path_1st, 'r') as file:
-        config_params_1st = yaml.safe_load(file)['urg_node2']['ros__parameters']
+    # パラメータファイルの読み込み（1台目）
+    with open(config_file_path_front, 'r') as file:
+        config_params_front = yaml.safe_load(file)['urg_node2']['ros__parameters']
 
-    # パラメータファイルのロード（2台目）
-    with open(config_file_path_2nd, 'r') as file:
-        config_params_2nd = yaml.safe_load(file)['urg_node2']['ros__parameters']
+    # パラメータファイルの読み込み（2台目）
+    with open(config_file_path_rear, 'r') as file:
+        config_params_rear = yaml.safe_load(file)['urg_node2']['ros__parameters']
 
-    # urg_node2をライフサイクルノードとして起動（1台目）
-    lifecycle_node_1st = LifecycleNode(
+    # ライフサイクルノードとしてのurg_node2の初期化（1台目）
+    lifecycle_node_front = LifecycleNode(
         package='urg_node2',
         executable='urg_node2_node',
-        name=LaunchConfiguration('node_name_1st'),
-        remappings=[('scan', LaunchConfiguration('scan_topic_name_1st'))],
-        parameters=[config_params_1st],
+        name=LaunchConfiguration('node_name_front'),
+        remappings=[('scan', LaunchConfiguration('scan_topic_name_front'))],
+        parameters=[config_params_front],
         namespace='',
         output='screen',
     )
 
-    # urg_node2をライフサイクルノードとして起動（2台目）
-    lifecycle_node_2nd = LifecycleNode(
+    # ライフサイクルノードとしてのurg_node2の初期化（2台目）
+    lifecycle_node_rear = LifecycleNode(
         package='urg_node2',
         executable='urg_node2_node',
-        name=LaunchConfiguration('node_name_2nd'),
-        remappings=[('scan', LaunchConfiguration('scan_topic_name_2nd'))],
-        parameters=[config_params_2nd],
+        name=LaunchConfiguration('node_name_rear'),
+        remappings=[('scan', LaunchConfiguration('scan_topic_name_rear'))],
+        parameters=[config_params_rear],
         namespace='',
         output='screen',
     )
 
-    # Unconfigure状態からInactive状態への遷移（auto_startがtrueのとき実施）（1台目）
-    urg_node2_node_1st_configure_event_handler = RegisterEventHandler(
+    # Unconfigure から Inactive への状態遷移（auto_start が true の場合に実行）（1台目）
+    urg_node2_node_front_configure_event_handler = RegisterEventHandler(
         event_handler=OnProcessStart(
-            target_action=lifecycle_node_1st,
+            target_action=lifecycle_node_front,
             on_start=[
                 EmitEvent(
                     event=ChangeState(
-                        lifecycle_node_matcher=matches_action(lifecycle_node_1st),
+                        lifecycle_node_matcher=matches_action(lifecycle_node_front),
                         transition_id=Transition.TRANSITION_CONFIGURE,
                     ),
                 ),
@@ -91,16 +91,16 @@ def generate_launch_description():
         condition=IfCondition(LaunchConfiguration('auto_start')),
     )
 
-    # Inactive状態からActive状態への遷移（auto_startがtrueのとき実施）（1台目）
-    urg_node2_node_1st_activate_event_handler = RegisterEventHandler(
+    # Inactive から Active への状態遷移（auto_start が true の場合に実行）（1台目）
+    urg_node2_node_front_activate_event_handler = RegisterEventHandler(
         event_handler=OnStateTransition(
-            target_lifecycle_node=lifecycle_node_1st,
+            target_lifecycle_node=lifecycle_node_front,
             start_state='configuring',
             goal_state='inactive',
             entities=[
                 EmitEvent(
                     event=ChangeState(
-                        lifecycle_node_matcher=matches_action(lifecycle_node_1st),
+                        lifecycle_node_matcher=matches_action(lifecycle_node_front),
                         transition_id=Transition.TRANSITION_ACTIVATE,
                     ),
                 ),
@@ -109,14 +109,14 @@ def generate_launch_description():
         condition=IfCondition(LaunchConfiguration('auto_start')),
     )
 
-    # Unconfigure状態からInactive状態への遷移（auto_startがtrueのとき実施）（2台目）
-    urg_node2_node_2nd_configure_event_handler = RegisterEventHandler(
+    # Unconfigure から Inactive への状態遷移（auto_start が true の場合に実行）（2台目）
+    urg_node2_node_rear_configure_event_handler = RegisterEventHandler(
         event_handler=OnProcessStart(
-            target_action=lifecycle_node_2nd,
+            target_action=lifecycle_node_rear,
             on_start=[
                 EmitEvent(
                     event=ChangeState(
-                        lifecycle_node_matcher=matches_action(lifecycle_node_2nd),
+                        lifecycle_node_matcher=matches_action(lifecycle_node_rear),
                         transition_id=Transition.TRANSITION_CONFIGURE,
                     ),
                 ),
@@ -125,16 +125,16 @@ def generate_launch_description():
         condition=IfCondition(LaunchConfiguration('auto_start')),
     )
 
-    # Inactive状態からActive状態への遷移（auto_startがtrueのとき実施）（2台目）
-    urg_node2_node_2nd_activate_event_handler = RegisterEventHandler(
+    # Inactive から Active への状態遷移（auto_start が true の場合に実行）（2台目）
+    urg_node2_node_rear_activate_event_handler = RegisterEventHandler(
         event_handler=OnStateTransition(
-            target_lifecycle_node=lifecycle_node_2nd,
+            target_lifecycle_node=lifecycle_node_rear,
             start_state='configuring',
             goal_state='inactive',
             entities=[
                 EmitEvent(
                     event=ChangeState(
-                        lifecycle_node_matcher=matches_action(lifecycle_node_2nd),
+                        lifecycle_node_matcher=matches_action(lifecycle_node_rear),
                         transition_id=Transition.TRANSITION_ACTIVATE,
                     ),
                 ),
@@ -143,24 +143,24 @@ def generate_launch_description():
         condition=IfCondition(LaunchConfiguration('auto_start')),
     )
 
-    # パラメータについて
-    # auto_start          : 起動時自動でActive状態まで遷移 (default)true
-    # node_name_1st       : 1台目のノード名 (default)"urg_node2_1st"
-    # node_name_2nd       : 2台目のノード名 (default)"urg_node2_2nd"
-    # scan_topic_name_1st : トピック名 (default)"scan_1st" *マルチエコー非対応*
-    # scan_topic_name_2nd : トピック名 (default)"scan_2nd" *マルチエコー非対応*
-    # *マルチエコーを使用する場合は上部のnode起動部のremappingsを直接編集してください*
-    # *ロードするパラメータファイルは上部のファイル名を直接編集してください*
+    # 引数について
+    # auto_start          : 起動時に自動で Active 状態へ遷移させる（デフォルト）true
+    # node_name_front     : 1台目のノード名（デフォルト）"urg_node2_front"
+    # node_name_rear      : 2台目のノード名（デフォルト）"urg_node2_rear"
+    # scan_topic_name_front : トピック名（デフォルト）"scan_front" ※マルチエコー非対応
+    # scan_topic_name_rear : トピック名（デフォルト）"scan_rear" ※マルチエコー非対応
+    # ※マルチエコーを利用する場合は、上記のノード初期化セクションの remappings を直接編集してください
+    # ※読み込むパラメータファイルを変更するには、上記ファイルのファイル名を直接編集してください
     return LaunchDescription([
         DeclareLaunchArgument('auto_start', default_value='true'),
-        DeclareLaunchArgument('node_name_1st', default_value='urg_node2_1st'),
-        DeclareLaunchArgument('node_name_2nd', default_value='urg_node2_2nd'),
-        DeclareLaunchArgument('scan_topic_name_1st', default_value='scan_1st'),
-        DeclareLaunchArgument('scan_topic_name_2nd', default_value='scan_2nd'),
-        lifecycle_node_1st,
-        lifecycle_node_2nd,
-        urg_node2_node_1st_configure_event_handler,
-        urg_node2_node_1st_activate_event_handler,
-        urg_node2_node_2nd_configure_event_handler,
-        urg_node2_node_2nd_activate_event_handler,
+        DeclareLaunchArgument('node_name_front', default_value='urg_node2_front'),
+        DeclareLaunchArgument('node_name_rear', default_value='urg_node2_rear'),
+        DeclareLaunchArgument('scan_topic_name_front', default_value='scan_front'),
+        DeclareLaunchArgument('scan_topic_name_rear', default_value='scan_rear'),
+        lifecycle_node_front,
+        lifecycle_node_rear,
+        urg_node2_node_front_configure_event_handler,
+        urg_node2_node_front_activate_event_handler,
+        urg_node2_node_rear_configure_event_handler,
+        urg_node2_node_rear_activate_event_handler,
     ])
